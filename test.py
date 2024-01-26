@@ -4,8 +4,6 @@ import aiohttp
 import time
 from colorama import Fore
 
-os.system('cls')
-
 async def titocalderon(numero, sexo, carpeta, semaforo):
     try:
         url = f"https://hbi.acuariosalud.com/federador.asp?accion=renaper&nrodoc={numero}&sexo={sexo}"
@@ -55,12 +53,18 @@ async def el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexio
     await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
-    carpeta_resultados = "ella_me_llama"
+    # Obten la ruta del directorio del script
+    script_dir = os.path.dirname(__file__)
+    
+    # Construye la ruta completa para la carpeta de resultados
+    carpeta_resultados = os.path.join(script_dir, "ella_me_llama")
+    
+    # Crea la carpeta si no existe
     os.makedirs(carpeta_resultados, exist_ok=True)
 
     sexos = ['M', 'F']
-    inicio = 30046783 #lo cambie pa ta bien
-    fin = 59999999
+    inicio = 00000000  # Cambia según tus necesidades
+    fin = 59999999  # Cambia según tus necesidades
     lote_size = 500
     conexiones_concurrentes = 1000  # Ajusta este valor según tus necesidades
 
