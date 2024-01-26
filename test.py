@@ -54,7 +54,7 @@ async def el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexio
 
 if __name__ == "__main__":
     # Obten la ruta del directorio del script
-    script_dir = os.path.dirname(__file__)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Construye la ruta completa para la carpeta de resultados
     carpeta_resultados = os.path.join(script_dir, "ella_me_llama")
@@ -68,4 +68,5 @@ if __name__ == "__main__":
     lote_size = 500
     conexiones_concurrentes = 1000  # Ajusta este valor según tus necesidades
 
-    asyncio.run(el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexiones_concurrentes))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(el_italiano(inicio, fin, sexos, carpeta_resultados, lote_size, conexiones_concurrentes))
